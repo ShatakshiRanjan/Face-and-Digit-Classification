@@ -320,9 +320,9 @@ def runClassifier(args, options):
     
     # Extract features
     print("Extracting features...")
-    trainingData = map(featureFunction, rawTrainingData)
-    validationData = map(featureFunction, rawValidationData)
-    testData = map(featureFunction, rawTestData)
+    trainingData = list(map(featureFunction, rawTrainingData))
+    validationData = list(map(featureFunction, rawValidationData))
+    testData = list(map(featureFunction, rawTestData))
     
     # Conduct training and testing
     if options.run:
@@ -427,7 +427,7 @@ def runClassifier(args, options):
     #   print string3
     #   printImage(features_odds)
 
-    # if((options.weights) & (options.classifier == "perceptron")):
+    #if((options.weights) & (options.classifier == "perceptron")):
     #   for l in classifier.legalLabels:
     #     features_weights = classifier.findHighWeightFeatures(l)
     #     print ("=== Features with high weight for label %d ==="%l)
