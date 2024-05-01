@@ -14,16 +14,18 @@ class PerceptronClassifier:
     """
     Perceptron classifier.
     
-    Note that the variable 'datum' in this code refers to a counter of features
-    (not to a raw samples.Datum).
+    This class implements a simple perceptron classifier that updates weights based
+    on classification errors. Each feature of the input data contributes to the decision
+    by a weighted sum, and weights are updated based on the perceptron learning rule.
     """
     def __init__(self, legalLabels, max_iterations):
         self.legalLabels = legalLabels
         self.type = "perceptron"
         self.max_iterations = max_iterations
         self.weights = {}
-        for label in legalLabels:
-            self.weights[label] = util.Counter()  # this is the data-structure you should use
+        for label in self.legalLabels:
+            # Initialize weights to zero
+            self.weights[label] = util.Counter()
 
     def setWeights(self, weights):
         assert len(weights) == len(self.legalLabels)
@@ -33,53 +35,43 @@ class PerceptronClassifier:
         """
         The training loop for the perceptron passes through the training data several
         times and updates the weight vector for each label based on classification errors.
-        See the project description for details.
-
-        Use the provided self.weights[label] data structure so that
-        the classify method works correctly. Also, recall that a
-        datum is a counter from features to values for those features
-        (and thus represents a vector a values).
+        Each datum is a util.Counter of features representing a vector of feature values.
         """
-
         self.features = trainingData[0].keys()  # could be useful later
-        # Initialize weights randomly
-        for label in self.weights:
-            for feature in self.features:
-                self.weights[label][feature] = random.randint(0, 1)
 
         for iteration in range(self.max_iterations):
-            print("Starting iteration", iteration, "...")
+            if PRINT:
+                print("Starting iteration", iteration, "...")
             for i in range(len(trainingData)):
-                activations = {}
+                activations = util.Counter()
                 for label in self.legalLabels:
                     activations[label] = trainingData[i] * self.weights[label]
-                max_label = max(activations, key=activations.get)
+                predictedLabel = activations.argMax()
                 
-                if trainingLabels[i] != max_label:
-                    self.weights[trainingLabels[i]] += trainingData[i]
-                    self.weights[max_label] -= trainingData[i]
+                actualLabel = trainingLabels[i]
+                if actualLabel != predictedLabel:
+                    self.weights[actualLabel] += trainingData[i]
+                    self.weights[predictedLabel] -= trainingData[i]
 
     def classify(self, data):
         """
         Classifies each datum as the label that most closely matches the prototype vector
-        for that label.  See the project description for details.
-
-        Recall that a datum is a util.Counter...
+        for that label. Each datum is a util.Counter of features.
         """
         guesses = []
         for datum in data:
             vectors = util.Counter()
-            for l in self.legalLabels:
-                vectors[l] = self.weights[l] * datum
+            for label in self.legalLabels:
+                vectors[label] = self.weights[label] * datum
             guesses.append(vectors.argMax())
         return guesses
 
     def findHighWeightFeatures(self, label):
         """
-        Returns a list of the 100 features with the greatest weight for some label
+        Returns a list of the 100 features with the greatest weight for some label.
         """
-        featuresWeights = []
+        featureWeights = self.weights[label].items()
+        # Sort features by their weights in descending order and select the top 100
+        topFeatures = sorted(featureWeights, key=lambda feature: feature[1], reverse=True)[:100]
+        return [feature[0] for feature in topFeatures]  # Returning only the feature names
 
-        # *** YOUR CODE HERE ***
-        featuresWeights = self.weights[label].sortedKeys()[:100]
-        return featuresWeights
