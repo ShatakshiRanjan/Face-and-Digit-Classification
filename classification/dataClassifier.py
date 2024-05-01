@@ -349,7 +349,7 @@ def runClassifier(args, options):
                 randomData.append(rawTrainingData[i])
                 randomLabels.append(trainingLabels[i])
 
-            trainingData = map(featureFunction, randomData)
+            trainingData = list(map(featureFunction, randomData))
 
             startTime = time.time()
             classifier.train(trainingData, randomLabels, validationData, validationLabels)
@@ -427,11 +427,11 @@ def runClassifier(args, options):
     #   print string3
     #   printImage(features_odds)
 
-    #if((options.weights) & (options.classifier == "perceptron")):
-    #   for l in classifier.legalLabels:
-    #     features_weights = classifier.findHighWeightFeatures(l)
-    #     print ("=== Features with high weight for label %d ==="%l)
-    #     printImage(features_weights)
+    if((options.weights) & (options.classifier == "perceptron")):
+       for l in classifier.legalLabels:
+         features_weights = classifier.findHighWeightFeatures(l)
+         print ("=== Features with high weight for label %d ==="%l)
+         printImage(features_weights)
 
 if __name__ == '__main__':
     # Read input
