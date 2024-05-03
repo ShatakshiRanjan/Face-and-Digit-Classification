@@ -19,6 +19,7 @@ import sys
 import util
 import time
 import random
+import nn
 
 TEST_SET_SIZE = 100
 DIGIT_DATUM_WIDTH=28
@@ -244,6 +245,9 @@ def readCommand(argv):
             print("using smoothing parameter k=%f for naivebayes" %  options.smoothing)
     elif(options.classifier == "perceptron"):
         classifier = perceptron.PerceptronClassifier(legalLabels,options.iterations)
+    elif(options.classifier == "two-layer-network"):
+        # classifier = nn.TwoLayerNetwork(legalLabels,options.iterations, 10)
+        # can change the number of hidden units accordingly
     elif(options.classifier == "mira"):
         classifier = mira.MiraClassifier(legalLabels, options.iterations)
         if (options.autotune):
@@ -432,6 +436,20 @@ def runClassifier(args, options):
          features_weights = classifier.findHighWeightFeatures(l)
          print ("=== Features with high weight for label %d ==="%l)
          printImage(features_weights)
+         
+    if options.weights and options.classifier == "two-layer-network":
+        # Visualize high-weight features for the hidden layer connections
+        for h in range(classifier.hidden_units):
+            hidden_features_weights = classifier.findHighWeightFeaturesHidden(h)
+            print(f"=== Features with high weight for hidden unit {h} ===")
+            printImage(hidden_features_weights)
+
+        # Visualize high-weight features for the output layer connections
+        for l in classifier.legalLabels:
+            features_weights = classifier.findHighWeightFeaturesOutput(l)
+            print(f"=== Features with high weight for label {l} ===")
+            printImage(features_weights)
+
 
 if __name__ == '__main__':
     # Read input
