@@ -19,7 +19,7 @@ class TwoLayerNetwork:
         self.type = "two-layer-network"
         self.max_iterations = max_iterations
         self.hidden_units = hidden_units
-        self.weights_hidden = util.Counter()  # Weights from input to hidden layer
+        self.weights_hidden = {}  # Weights from input to hidden layer
         self.weights_output = {}  # Weights from hidden layer to output labels
 
         # Initialize weights for the hidden layer
@@ -30,13 +30,14 @@ class TwoLayerNetwork:
         for label in self.legalLabels:
             self.weights_output[label] = util.Counter()
             for i in range(hidden_units):
-                self.weights_output[label][i] = random.random()
+                self.weights_output[label][i] = random.uniform(-0.1, 0.1)  # Small random values
 
     def train(self, trainingData, trainingLabels, validationData, validationLabels):
         """
         Training function for the two-layer network.
         """
         self.features = trainingData[0].keys()
+        learning_rate = 0.01
 
         for iteration in range(self.max_iterations):
             if PRINT:
@@ -45,29 +46,37 @@ class TwoLayerNetwork:
                 # Forward pass: compute hidden layer activations
                 hidden_activations = util.Counter()
                 for h in range(self.hidden_units):
-                    hidden_activations[h] = sigmoid(trainingData[i] * self.weights_hidden[h])
+                    dot_product = sum(trainingData[i][feature] * self.weights_hidden[h][feature] for feature in self.features)
+                    hidden_activations[h] = sigmoid(dot_product)
 
                 # Compute output layer activations
                 activations = util.Counter()
                 for label in self.legalLabels:
-                    activations[label] = sum(hidden_activations[h] * self.weights_output[label][h] for h in range(self.hidden_units))
+                    dot_product = sum(hidden_activations[h] * self.weights_output[label][h] for h in range(self.hidden_units))
+                    activations[label] = sigmoid(dot_product)
 
                 predictedLabel = activations.argMax()
                 actualLabel = trainingLabels[i]
 
-                # Update weights if necessary
-                if actualLabel != predictedLabel:
-                    # Update output layer weights
-                    for h in range(self.hidden_units):
-                        error_signal = hidden_activations[h] * (1 if actualLabel == label else -1)
-                        self.weights_output[actualLabel][h] += error_signal
-                        self.weights_output[predictedLabel][h] -= error_signal
+                # Calculate output errors
+                output_errors = {}
+                for label in self.legalLabels:
+                    output_errors[label] = (1 if actualLabel == label else 0) - activations[label]
 
-                    # Update hidden layer weights
+                # Update weights from hidden to output
+                for label in self.legalLabels:
                     for h in range(self.hidden_units):
-                        delta = sigmoid_derivative(trainingData[i] * self.weights_hidden[h])
-                        for feature, value in trainingData[i].items():
-                            self.weights_hidden[h][feature] += delta * value * (1 if actualLabel == label else -1)
+                        self.weights_output[label][h] += learning_rate * output_errors[label] * hidden_activations[h]
+
+                # Calculate hidden errors
+                hidden_errors = {}
+                for h in range(self.hidden_units):
+                    hidden_errors[h] = sum(output_errors[label] * self.weights_output[label][h] for label in self.legalLabels) * sigmoid_derivative(hidden_activations[h])
+
+                # Update weights from input to hidden
+                for h in range(self.hidden_units):
+                    for feature in self.features:
+                        self.weights_hidden[h][feature] += learning_rate * hidden_errors[h] * trainingData[i][feature]
 
     def classify(self, data):
         """
@@ -78,15 +87,18 @@ class TwoLayerNetwork:
             # Compute hidden layer activations
             hidden_activations = util.Counter()
             for h in range(self.hidden_units):
-                hidden_activations[h] = sigmoid(datum * self.weights_hidden[h])
+                dot_product = sum(datum[feature] * self.weights_hidden[h][feature] for feature in self.features)
+                hidden_activations[h] = sigmoid(dot_product)
 
             # Compute output layer activations
-            vectors = util.Counter()
+            activations = util.Counter()
             for label in self.legalLabels:
-                vectors[label] = sum(hidden_activations[h] * self.weights_output[label][h] for h in range(self.hidden_units))
-            guesses.append(vectors.argMax())
+                dot_product = sum(hidden_activations[h] * self.weights_output[label][h] for h in range(self.hidden_units))
+                activations[label] = sigmoid(dot_product)
+
+            guesses.append(activations.argMax())
         return guesses
-    
+
     def findHighWeightFeaturesHidden(self, hidden_unit):
         """
         Returns a list of the features with the greatest weight connecting to a hidden unit.
@@ -103,6 +115,6 @@ class TwoLayerNetwork:
         topFeatures = sorted(featureWeights, key=lambda feature: feature[1], reverse=True)[:100]
         return [feature[0] for feature in topFeatures]
 
-# Using this network similar to Perceptron
+# Example usage:
 # network = TwoLayerNetwork(legalLabels=[0, 1], max_iterations=10, hidden_units=10)
-# network.train(trainingData, trainingLabels, validationData, validationLabels)
+# network.train(trainingData, trainingLabels, validationData, validationLabels, learning_rate=0.01)
