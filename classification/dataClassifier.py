@@ -97,7 +97,8 @@ def analysis(classifier, guesses, testLabels, testData, rawTestData, printImage)
     
     An example of use has been given to you.
     
-    - classifier is the trained classifier
+    - classifier is the 
+    ed classifier
     - guesses is the list of labels predicted by your classifier on the test set
     - testLabels is the list of true labels
     - testData is the list of training datapoints (as util.Counter of features)
@@ -165,7 +166,7 @@ def readCommand(argv):
     parser = OptionParser(USAGE_STRING)
     
     parser.add_option('-r', '--run', help=default('Automatically run the training and test cycle 5 times.'), default=False, action='store_true')  
-    parser.add_option('-c', '--classifier', help=default('The type of classifier'), choices=['mostFrequent', 'nb', 'naiveBayes', 'perceptron', 'mira', 'minicontest'], default='mostFrequent')
+    parser.add_option('-c', '--classifier', help=default('The type of classifier'), choices=['mostFrequent', 'nb', 'naiveBayes', 'perceptron', 'mira', 'minicontest', 'two-layer-network'], default='mostFrequent')
     parser.add_option('-d', '--data', help=default('Dataset to use'), choices=['digits', 'faces'], default='digits')
     parser.add_option('-t', '--training', help=default('Set the ratio of the training set to use.'), default=1.0, type="float")
     parser.add_option('-f', '--features', help=default('Whether to use enhanced features'), default=False, action="store_true")
@@ -246,7 +247,8 @@ def readCommand(argv):
     elif(options.classifier == "perceptron"):
         classifier = perceptron.PerceptronClassifier(legalLabels,options.iterations)
     elif(options.classifier == "two-layer-network"):
-        # classifier = nn.TwoLayerNetwork(legalLabels,options.iterations, 10)
+        # classifier = nn.TwoLayerNetwork(legalLabels,options.iterations, 100)
+        classifier = nn.TwoLayerNetwork(legalLabels, 3, 10)
         # can change the number of hidden units accordingly
     elif(options.classifier == "mira"):
         classifier = mira.MiraClassifier(legalLabels, options.iterations)
@@ -431,11 +433,11 @@ def runClassifier(args, options):
     #   print string3
     #   printImage(features_odds)
 
-    if((options.weights) & (options.classifier == "perceptron")):
-       for l in classifier.legalLabels:
-         features_weights = classifier.findHighWeightFeatures(l)
-         print ("=== Features with high weight for label %d ==="%l)
-         printImage(features_weights)
+    # if((options.weights) & (options.classifier == "perceptron")):
+    #    for l in classifier.legalLabels:
+    #      features_weights = classifier.findHighWeightFeatures(l)
+    #      print ("=== Features with high weight for label %d ==="%l)
+    #      printImage(features_weights)
          
     if options.weights and options.classifier == "two-layer-network":
         # Visualize high-weight features for the hidden layer connections
