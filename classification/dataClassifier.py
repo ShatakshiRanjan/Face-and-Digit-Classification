@@ -248,7 +248,7 @@ def readCommand(argv):
         classifier = perceptron.PerceptronClassifier(legalLabels,options.iterations)
     elif(options.classifier == "two-layer-network"):
         # classifier = nn.TwoLayerNetwork(legalLabels,options.iterations, 100)
-        classifier = nn.TwoLayerNetwork(legalLabels, 3, 20)
+        classifier = nn.TwoLayerNetwork(legalLabels, options.iterations, 20)
         # can change the number of hidden units accordingly
     elif(options.classifier == "mira"):
         classifier = mira.MiraClassifier(legalLabels, options.iterations)
